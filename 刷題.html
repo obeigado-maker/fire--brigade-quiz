@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門消防局刷題助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.5;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            border-color: #666;
+        }
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .option.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .fill-input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            margin: 10px 0 20px 0;
+        }
+        .fill-input.correct {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .fill-input.wrong {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .result {
+            font-size: 18px;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.correct {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .result.wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .explanation {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            display: none;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .explanation.show {
+            display: block;
+        }
+        .question-type {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .question-count {
+            text-align: right;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>澳門消防局組織與運作刷題助手</h1>
+        
+        <!-- 題目計數 -->
+        <div class="question-count" id="questionCount">題目：1/30</div>
+        
+        <!-- 題目區域 -->
+        <div class="question-type" id="questionType">單選題</div>
+        <div class="question" id="questionText">2+3=？</div>
+        
+        <!-- 單選題選項區域 -->
+        <div class="options" id="optionsArea">
+            <div class="option" data-answer="A">A. 4</div>
+            <div class="option" data-answer="B">B. 5</div>
+            <div class="option" data-answer="C">C. 6</div>
+            <div class="option" data-answer="D">D. 7</div>
+        </div>
+        
+        <!-- 填空題輸入區域（初始隱藏） -->
+        <div id="fillArea" style="display: none;">
+            <input type="text" class="fill-input" id="fillAnswer" placeholder="請輸入答案">
+        </div>
+        
+        <!-- 結果和解析 -->
+        <div class="result" id="result"></div>
+        <div class="explanation" id="explanation">解析：本題考查基礎加法，2+3=5</div>
+        
+        <!-- 操作按鈕 -->
+        <button class="btn btn-primary" id="submitBtn">提交答案</button>
+        <button class="btn btn-success" id="nextBtn">下一題</button>
+    </div>
+
+    <script>
+        // 澳門消防局組織與運作完整題庫（繁體中文）
+        const questionBank = [
+            // 知識點1：消防局性質與直屬單位
+            {
+                type: "single",
+                text: "澳門特別行政區消防局之性質為何？",
+                options: {
+                    A: "直屬行政長官的民事部門",
+                    B: "直屬保安司司長的軍事化保安部隊",
+                    C: "直屬治安警察局的輔助部門",
+                    D: "獨立運作的公共實體"
+                },
+                answer: "B",
+                explanation: "解析：根據《消防局組織及運作》第一條，消防局為直屬保安司司長的軍事化保安部隊。"
+            },
+            {
+                type: "single",
+                text: "消防局的直屬上級單位是下列哪一個？",
+                options: {
+                    A: "澳門特別行政區政府",
+                    B: "保安司司長",
+                    C: "治安警察局",
+                    D: "民政總署"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第一條明確消防局直屬保安司司長管轄。"
+            },
+            {
+                type: "fill",
+                text: "澳門特別行政區消防局的性質是______，直屬於保安司司長。",
+                answer: "軍事化保安部隊",
+                explanation: "解析：依據《消防局組織及運作》第一條，消防局的核心屬性為軍事化保安部隊。"
+            },
+            
+            // 知識點2：消防局核心任務
+            {
+                type: "single",
+                text: "下列哪一項不屬於消防局的主要任務？",
+                options: {
+                    A: "滅火救助",
+                    B: "預防火災",
+                    C: "辦理駕駛執照",
+                    D: "緊急救護服務"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第二條列舉消防局任務包括滅火、防火、緊急救護，不包含辦理駕駛執照。"
+            },
+            {
+                type: "single",
+                text: "消防局於發生下列哪種事故時需提供救助？",
+                options: {
+                    A: "交通違規取締",
+                    B: "火災、水災、倒塌等災難",
+                    C: "戶籍登記申請",
+                    D: "商業執照審批"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第二條（一）項規定，消防局需在火災、水災、倒塌等危及人命或財產的災難時提供救助。"
+            },
+            {
+                type: "fill",
+                text: "消防局的核心任務包括預防火災、提供緊急救護服務，以及在發生______等災難時提供救助。",
+                answer: "火災、水災、倒塌",
+                explanation: "解析：《消防局組織及運作》第二條（一）項明確列舉消防局需應對的災難類型為火災、水災、倒塌等。"
+            },
+            
+            // 知識點3：消防局活動區域
+            {
+                type: "single",
+                text: "消防局的活動範圍主要遍及澳門特別行政區的哪個區域？",
+                options: {
+                    A: "僅澳門半島",
+                    B: "僅海島市",
+                    C: "整個澳門特別行政區的陸地",
+                    D: "澳門及珠海部分區域"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第四條第一款規定，消防局活動範圍遍及整個澳門特別行政區的陸地。"
+            },
+            {
+                type: "single",
+                text: "消防局若需在活動區域外提供服務，應取得下列哪一單位的許可？",
+                options: {
+                    A: "行政長官",
+                    B: "保安司司長",
+                    C: "消防局局長",
+                    D: "立法會"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第四條第二款指出，經保安司司長許可，消防局得在活動區域外提供服務。"
+            },
+            {
+                type: "fill",
+                text: "消防局的活動範圍遍及整個澳門特別行政區的______，經許可後可在區域外提供服務。",
+                answer: "陸地",
+                explanation: "解析：依據《消防局組織及運作》第四條第一款，消防局的基礎活動區域為澳門特別行政區的陸地。"
+            },
+            
+            // 知識點4：消防局組織結構（指揮部）
+            {
+                type: "single",
+                text: "消防局指揮部的組成成員不包括下列哪一職位？",
+                options: {
+                    A: "局長",
+                    B: "副局長",
+                    C: "消防總監",
+                    D: "紀律委員會主持者"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第六條規定，指揮部由一名局長及二名副局長組成，紀律委員會由副局長主持（屬指揮機關），消防總監為編制內職位，不屬指揮部組成。"
+            },
+            {
+                type: "single",
+                text: "消防局局長的職權不包括下列哪一項？",
+                options: {
+                    A: "領導消防局所有活動",
+                    B: "編制年度預算草案",
+                    C: "在其他機構代表消防局",
+                    D: "制定內部事務規章相關規定"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第七條列舉局長職權包括領導活動、代表消防局、制定內部規定等，編制預算草案屬行政及財政處職責。"
+            },
+            {
+                type: "fill",
+                text: "消防局指揮部由一名______及二名副局長組成，負責統籌消防局整體工作。",
+                answer: "局長",
+                explanation: "解析：《消防局組織及運作》第六條明確指揮部的組成為一名局長及二名副局長。"
+            },
+            
+            // 知識點5：消防局核心附屬單位（防火廳）
+            {
+                type: "single",
+                text: "負責統籌防火方面一切活動的消防局附屬單位是？",
+                options: {
+                    A: "澳門行動廳",
+                    B: "防火廳",
+                    C: "燃料安全廳",
+                    D: "研究及策劃廳"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第十九條第一款規定，防火廳負責統籌防火方面的一切活動。"
+            },
+            {
+                type: "single",
+                text: "防火廳下設的附屬單位不包括下列哪一個？",
+                options: {
+                    A: "設施檢驗處",
+                    B: "設計圖分析處",
+                    C: "教育宣傳及公關處",
+                    D: "防火設備監察組"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第十九條第二款指出，防火廳下設設施檢驗處及設計圖分析處，教育宣傳及公關處隸屬研究及策劃廳。"
+            },
+            {
+                type: "fill",
+                text: "防火廳下設設施檢驗處及______，分別負責防火設備檢驗及建築設計圖防火審查。",
+                answer: "設計圖分析處",
+                explanation: "解析：《消防局組織及運作》第十九條第二款及第二十一條規定，設計圖分析處隸屬防火廳，負責建築設計圖的防火安全審查。"
+            },
+            
+            // 知識點6：消防局緊急救護職責
+            {
+                type: "single",
+                text: "消防局提供的緊急救護服務對象不包括下列哪一類？",
+                options: {
+                    A: "緊急病人",
+                    B: "遇難人",
+                    C: "健康檢查民眾",
+                    D: "災難中的受困者"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第三條（二）項規定，消防局向病人及遇難人提供緊急救護服務，健康檢查不屬緊急救助範疇。"
+            },
+            {
+                type: "single",
+                text: "澳門行動廳的核心職權不包括下列哪一項？",
+                options: {
+                    A: "澳門半島滅火工作",
+                    B: "緊急院前救護",
+                    C: "海島市拯救任務",
+                    D: "機場消防救助"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第十六條規定，澳門行動廳負責其所屬區域（澳門半島）的滅火、拯救及緊急救護，海島市任務屬海島行動廳職責。"
+            },
+            {
+                type: "fill",
+                text: "消防局需向緊急病人及______提供緊急救護服務，並在災難現場開展拯救工作。",
+                answer: "遇難人",
+                explanation: "解析：《消防局組織及運作》第三條（二）項明確消防局的緊急救護服務對象為病人及遇難人。"
+            },
+            
+            // 知識點7：燃料安全監管職責
+            {
+                type: "single",
+                text: "負責監察燃料相關業務安全的消防局附屬單位是？",
+                options: {
+                    A: "防火廳",
+                    B: "燃料安全廳",
+                    C: "設施檢驗處",
+                    D: "法律輔助處"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第二十三條規定，燃料安全廳負責監察與燃料相關業務的法律規章遵守情況。"
+            },
+            {
+                type: "single",
+                text: "燃料安全廳的職權不包括下列哪一項？",
+                options: {
+                    A: "燃料設施定期檢查",
+                    B: "燃料業務開設登記意見",
+                    C: "防火設備銷售許可",
+                    D: "安全措施建議"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第二十三條列舉燃料安全廳職權包括檢查、意見發表、安全措施建議，防火設備銷售許可不屬其職責。"
+            },
+            {
+                type: "fill",
+                text: "消防局燃料安全廳負責監察《澳門行業分類》中燃料零售、批發、儲存及______等業務的安全。",
+                answer: "傳輸",
+                explanation: "解析：《消防局組織及運作》第三條（十七）項及第二十三條規定，燃料安全廳監管範圍包括燃料傳輸業務。"
+            },
+            
+            // 知識點8：消防局人員編制
+            {
+                type: "single",
+                text: "消防局軍事化人員的編制總數為多少人？",
+                options: {
+                    A: "1589人",
+                    B: "1600人",
+                    C: "1500人",
+                    D: "1700人"
+                },
+                answer: "A",
+                explanation: "解析：《消防局組織及運作》附件B顯示，消防局人員編制總數為1589人。"
+            },
+            {
+                type: "single",
+                text: "消防局文職人員隸屬於下列哪一單位的編制？",
+                options: {
+                    A: "消防局本身",
+                    B: "保安司",
+                    C: "澳門保安部隊事務局",
+                    D: "行政公職局"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第三十二條第一款規定，文職人員屬澳門保安部隊事務局人員編制。"
+            },
+            {
+                type: "fill",
+                text: "根據消防局人員編制，首席消防員的職位數目為______人。",
+                answer: "338",
+                explanation: "解析：《消防局組織及運作》附件B明確列出首席消防員的職位數目為338人。"
+            },
+            
+            // 知識點9：消防學校職能
+            {
+                type: "single",
+                text: "消防學校的核心職權不包括下列哪一項？",
+                options: {
+                    A: "消防人員培訓",
+                    B: "公眾防火講座",
+                    C: "設施防火檢驗",
+                    D: "體格訓練統籌"
+                },
+                answer: "C",
+                explanation: "解析：《消防局組織及運作》第二十二條規定，消防學校負責人員培訓、公眾防火教育、體格訓練等，設施防火檢驗屬防火廳職責。"
+            },
+            {
+                type: "single",
+                text: "消防學校需協助下列哪一單位開展防火宣傳教育？",
+                options: {
+                    A: "教育宣傳及公關處",
+                    B: "行政及財政處",
+                    C: "法律輔助處",
+                    D: "裝備設施維修處"
+                },
+                answer: "A",
+                explanation: "解析：《消防局組織及運作》第二十二條（二）項規定，消防學校協助教育宣傳及公關處提供防火講座及展覽。"
+            },
+            {
+                type: "fill",
+                text: "消防學校負責向消防局軍事化人員提供培訓、升級及______所需的課程及實習。",
+                answer: "提高專業素質",
+                explanation: "解析：《消防局組織及運作》第二十二條（一）項明確消防學校的課程目的包括提高軍事化人員的專業素質。"
+            },
+            
+            // 知識點10：消防局日
+            {
+                type: "single",
+                text: "每年的「消防局日」是下列哪一天？",
+                options: {
+                    A: "5月2日",
+                    B: "1月1日",
+                    C: "10月1日",
+                    D: "7月1日"
+                },
+                answer: "A",
+                explanation: "解析：《消防局組織及運作》第三十八條規定，每年五月二日為「消防局日」。"
+            },
+            {
+                type: "single",
+                text: "「消防局日」的設定依據來自下列哪一文件？",
+                options: {
+                    A: "《澳門特別行政區基本法》",
+                    B: "本行政法規（消防局組織及運作）",
+                    C: "《消防局內部事務規章》",
+                    D: "《澳門保安部隊軍事化人員通則》"
+                },
+                answer: "B",
+                explanation: "解析：《消防局組織及運作》第三十八條在本行政法規中明確規定每年五月二日為「消防局日」。"
+            },
+            {
+                type: "fill",
+                text: "每年的______為「消防局日」，是紀念消防局職能與貢獻的專門日期。",
+                answer: "5月2日",
+                explanation: "解析：依據《消防局組織及運作》第三十八條，「消防局日」的具體日期為每年五月二日。"
+            }
+        ];
+
+        // 全域變數
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+
+        // DOM元素
+        const questionCountEl = document.getElementById("questionCount");
+        const questionTypeEl = document.getElementById("questionType");
+        const questionTextEl = document.getElementById("questionText");
+        const optionsAreaEl = document.getElementById("optionsArea");
+        const fillAreaEl = document.getElementById("fillArea");
+        const fillAnswerEl = document.getElementById("fillAnswer");
+        const resultEl = document.getElementById("result");
+        const explanationEl = document.getElementById("explanation");
+        const submitBtnEl = document.getElementById("submitBtn");
+        const nextBtnEl = document.getElementById("nextBtn");
+
+        // 初始化當前題目
+        function initCurrentQuestion() {
+            // 重置狀態
+            selectedOption = null;
+            resultEl.className = "result";
+            explanationEl.className = "explanation";
+            fillAnswerEl.className = "fill-input";
+            fillAnswerEl.value = "";
+            // 清空選項
+            optionsAreaEl.innerHTML = "";
+
+            // 取得當前題目
+            const currentQ = questionBank[currentQuestionIndex];
+            
+            // 更新題目計數
+            questionCountEl.textContent = `題目：${currentQuestionIndex + 1}/${questionBank.length}`;
+            
+            // 更新題型和題幹
+            questionTypeEl.textContent = currentQ.type === "single" ? "單選題" : "填空題";
+            questionTextEl.textContent = currentQ.text;
+
+            // 顯示對應題型區域
+            if (currentQ.type === "single") {
+                optionsAreaEl.style.display = "flex";
+                fillAreaEl.style.display = "none";
+                // 生成選項
+                for (const [key, value] of Object.entries(currentQ.options)) {
+                    const optionEl = document.createElement("div");
+                    optionEl.className = "option";
+                    optionEl.dataset.answer = key;
+                    optionEl.textContent = `${key}. ${value}`;
+                    optionEl.addEventListener("click", () => {
+                        // 取消其他選項選中狀態
+                        document.querySelectorAll(".option").forEach(el => {
+                            el.style.borderColor = "#ddd";
+                        });
+                        // 選中當前選項
+                        optionEl.style.borderColor = "#007bff";
+                        selectedOption = key;
+                    });
+                    optionsAreaEl.appendChild(optionEl);
+                }
+            } else {
+                optionsAreaEl.style.display = "none";
+                fillAreaEl.style.display = "block";
+            }
+
+            // 更新解析
+            explanationEl.textContent = currentQ.explanation;
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const currentQ = questionBank[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentQ.type === "single") {
+                // 單選題驗證
+                if (!selectedOption) {
+                    alert("請選擇一個選項！");
+                    return;
+                }
+                isCorrect = selectedOption === currentQ.answer;
+                // 標記正確/錯誤選項
+                document.querySelectorAll(".option").forEach(el => {
+                    if (el.dataset.answer === currentQ.answer) {
+                        el.className = "option correct";
+                    } else if (el.dataset.answer === selectedOption && !isCorrect) {
+                        el.className = "option wrong";
+                    }
+                });
+            } else {
+                // 填空題驗證（忽略大小寫/空格）
+                const userAnswer = fillAnswerEl.value.trim().toLowerCase();
+                const correctAnswer = currentQ.answer.trim().toLowerCase();
+                isCorrect = userAnswer === correctAnswer;
+                // 標記輸入框
+                fillAnswerEl.className = `fill-input ${isCorrect ? "correct" : "wrong"}`;
+            }
+
+            // 顯示結果
+            resultEl.className = `result ${isCorrect ? "correct" : "wrong"}`;
+            resultEl.textContent = isCorrect ? "✅ 回答正確！" : `❌ 回答錯誤，正確答案是：${currentQ.answer}`;
+            // 顯示解析
+            explanationEl.className = "explanation show";
+        }
+
+        // 下一題
+        function nextQuestion() {
+            if (currentQuestionIndex === questionBank.length - 1) {
+                alert("🎉 已完成所有題目！");
+                currentQuestionIndex = 0; // 重置為第一題
+            } else {
+                currentQuestionIndex++;
+            }
+            initCurrentQuestion();
+        }
+
+        // 綁定事件
+        submitBtnEl.addEventListener("click", submitAnswer);
+        nextBtnEl.addEventListener("click", nextQuestion);
+
+        // 初始化
+        initCurrentQuestion();
+    </script>
+</body>
+</html>
